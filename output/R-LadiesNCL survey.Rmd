@@ -1,0 +1,28 @@
+---
+title: "R-Ladies Newcastle Survey"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Ladies
+
+We want to hear what the community would like to see from R-Ladies Newcastle! We sent a survey both to those who could and couldn't attend our first meetup.We wanted to hear our communities opinions so that we can make sure we create an inclusive space with events they want to attend.
+
+Below we have created some visualisations from the data we received.
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
