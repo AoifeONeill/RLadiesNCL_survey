@@ -9,10 +9,11 @@ Below we have created some visualisations from the data we received.
 
 ```{r setup}
 knitr::opts_chunk$set(echo = TRUE)
-getwd()
 
 library(tidyverse)
-survey_data <- readxl::read_xlsx("~/Meetup/data/R-Ladies Newcastle Survey (Responses).xlsx")
+library(here)
+
+survey_data <- readxl::read_xlsx(here("R-Ladies Newcastle Survey (Responses).xlsx"))
 
 ```
 
@@ -25,15 +26,21 @@ Experience_graph_data <- survey_data %>%
  
 #Change Scale_y_continuous so that upper Y value fits the data
 
+my.labels <- c("I am a \nbeginner or\nnew to R", 
+               "I am \nprogramming \nbut not in R",
+               "I am \nusing R \nregularly", 
+               "I have some \nexperience with R")
+
 Experience_graph <- Experience_graph_data %>%
-   ggplot(
-    aes(x =`What is your experience with R?`,
-        y = n,
+   ggplot(aes(x =`What is your experience with R?`,y = n,
         fill = `What is your experience with R?`))+   
   geom_bar (stat = "identity") +
    scale_y_continuous(expand = c(0, 0), limits = c(0, 50))+
-  theme_classic()+
-   scale_fill_manual(values=c("#88398a","#9966FF","#660066","#CC66FF"))
+   scale_fill_manual(values=c("#88398a","#9966FF","#660066","#CC66FF"))+
+  scale_x_discrete(labels= my.labels)+
+  theme_classic()
+  
+  
 
 print(Experience_graph)
 
@@ -67,19 +74,56 @@ print(Involvement_graph)
 
 ##What do you expect from joining R-Ladies meetups? (select all which apply)
 ```{r Expectations}
-Expectations_graph_data <- survey_data %>%
-  count(`What do you expect from joining R-Ladies meetups? (select all which apply)`)
+# Expectations_graph_data <- survey_data %>%
+#   count(`What do you expect from joining R-Ladies meetups? (select all which apply)`)
+# 
+# Expectations_graph <- Expectations_graph_data %>%
+#    ggplot(
+#     aes(x =`What do you expect from joining R-Ladies meetups? (select all which apply)`,
+#         y = n,
+#         fill = `What do you expect from joining R-Ladies meetups? (select all which apply)`))+    geom_bar (stat = "identity") +
+#    scale_y_continuous(expand = c(0, 0), limits = c(0, 50))+
+#   theme_classic()+
+#    scale_fill_manual(values=c("#88398a","#9966FF","#660066","#CC66FF", "#562457"))
+#   
+# print(Expectations_graph)  
 
-Expectations_graph <- Expectations_graph_data %>%
-   ggplot(
-    aes(x =`What do you expect from joining R-Ladies meetups? (select all which apply)`,
-        y = n,
-        fill = `What do you expect from joining R-Ladies meetups? (select all which apply)`))+    geom_bar (stat = "identity") +
+
+
+Expectations_data<- survey_data %>% 
+  select(`What do you expect from joining R-Ladies meetups? (select all which apply)`) %>% 
+  separate(., `What do you expect from joining R-Ladies meetups? (select all which apply)`, c("one", "two"),sep= ",") %>% 
+  separate(., two, c("two", "three"), sep = ",") %>% 
+  separate(., three, c("three", "four"), sep = ",") %>% 
+  gather() %>% 
+  filter(!is.na(value)) %>% 
+  select(value) %>% 
+  rename(Response = "value") %>% 
+  count(Response)
+# why is Hear what other.. counted twice seperately??? my stupidity probably
+
+# not sure how this will deal with any 'other responses yet'
+
+my.labels <- c("Hear what other \npeople are using R for",
+               "Networking with fellow \nwomen and other \nmarginalised genders \nin data science", 
+               "Hear what other \npeople are using R for",
+                "To learn new R \nskills through \ninteractive workshops \n(e.g. tutorials)")
+
+
+Expectations_graph <- ggplot(data = Expectations_data, 
+                             aes(x = Response, y = n, fill = Response))+
+  geom_bar(stat="identity")+
    scale_y_continuous(expand = c(0, 0), limits = c(0, 50))+
+  scale_x_discrete(labels= my.labels)+
   theme_classic()+
-   scale_fill_manual(values=c("#88398a","#9966FF","#660066","#CC66FF"))
-  
+   scale_fill_manual(values=c("#88398a","#9966FF","#660066","#CC66FF", "#562457"))+
+  theme(legend.position = "none")
+
 print(Expectations_graph)  
+
+
+
+
 
 ```
 
@@ -89,14 +133,36 @@ print(Expectations_graph)
 Topics_graph_data <- survey_data %>%
   count(`If you answered yes to learning R, which topics are you most interested to learn with R?`)
 
-Topics_graph <- Topics_graph_data %>%
-   ggplot(
-    aes(x =`What is your experience with R?`,
-        y = n,
-        fill = `What is your experience with R?`))+   
-  geom_bar (stat = "identity") +
-   scale_y_continuous(expand = c(0, 0), limits = c(0, 50))+
-  theme_classic()+
-   scale_fill_manual(values=c("#88398a","#9966FF","#660066","#CC66FF"))
 
+poo <- survey_data %>% 
+  select(`If you answered yes to learning R, which topics are you most interested to learn with R?`) %>% 
+  separate(., `If you answered yes to learning R, which topics are you most interested to learn with R?`, c("one", "two"),sep= ",") %>% 
+  separate(., two, c("two", "three"), sep = ",") %>% 
+  separate(., three, c("three", "four"), sep = ",") %>% 
+  separate(., four, c("four", "five"), sep = ",") %>% 
+  separate(., five, c("five", "six"), sep = ",") %>% 
+  separate(., six, c("six", "seven"), sep = ",") %>% 
+  separate(., seven, c("seven", "eight"), sep = ",") %>% 
+  separate(., eight, c("eight", "nine"), sep = ",") %>% 
+  gather() %>% 
+  filter(!is.na(value)) %>% 
+  select(value) %>% 
+  rename(Response = "value") %>%
+    count(Response)
+
+my.labels <- c("Data \nmanipulation","Data \nvisualisation", "Maping", "Spatial \nanalytics",
+               "Statistical \nanalysis \nmethods", "Data \nmanipulation", "Introduction \nto R",
+               "Shiny", "Spatial \nanalytics", "Statistical \nanalysis \nmethods")
+
+
+Topics_graph <- poo %>%
+   ggplot(aes(x =Response,y = n,
+        fill = Response))+   
+  geom_bar (stat = "identity") +
+   scale_x_discrete(labels=my.labels)  +
+  theme_classic()+
+   scale_fill_manual(values=c("#88398a","#9966FF","#660066","#CC66FF", "#562457",
+                              "#D3D3D3","#7c5c7c",  "#472c47", "#a306a3", "#edc4ed"))+
+  theme(legend.position = "none")
+Topics_graph
 ```
