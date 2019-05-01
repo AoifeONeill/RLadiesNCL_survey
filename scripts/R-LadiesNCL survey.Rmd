@@ -1,22 +1,31 @@
 ---
-title: "R-Ladies Newcastle Survey"
-output: html_document
+title: "R-Ladies Newcastle"
+output:
+  xaringan::moon_reader:
+    css: ["default", "rladies", "rladies-fonts"]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+
 ---
 
 We want to hear what the community would like to see from R-Ladies Newcastle! We sent a survey both to those who could and couldn't attend our first meetup.We wanted to hear our communities opinions so that we can make sure we create an inclusive space with events they want to attend.
 
 Below we have created some visualisations from the data we received.
 
-```{r setup}
-knitr::opts_chunk$set(echo = TRUE)
-getwd()
-
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 library(tidyverse)
-survey_data <- readxl::read_xlsx("~/Meetup/data/R-Ladies Newcastle Survey (Responses).xlsx")
+library(here)
+survey_data <- readxl::read_xlsx(here("R-Ladies Newcastle Survey (Responses).xlsx"))
 
 ```
 
+---
 ## What is the range of experience for our community?
+
 
 ```{r Experience}
 
@@ -25,21 +34,28 @@ Experience_graph_data <- survey_data %>%
  
 #Change Scale_y_continuous so that upper Y value fits the data
 
+my.labels <- c("I am a \nbeginner or\nnew to R", 
+               "I am \nprogramming \nbut not in R",
+               "I am \nusing R \nregularly", 
+               "I have some \nexperience with R")
+
 Experience_graph <- Experience_graph_data %>%
-   ggplot(
-    aes(x =`What is your experience with R?`,
-        y = n,
+   ggplot(aes(x =`What is your experience with R?`,y = n,
         fill = `What is your experience with R?`))+   
   geom_bar (stat = "identity") +
    scale_y_continuous(expand = c(0, 0), limits = c(0, 50))+
-  theme_classic()+
-   scale_fill_manual(values=c("#88398a","#9966FF","#660066","#CC66FF"))
+   scale_fill_manual(values=c("#88398a","#9966FF","#660066","#CC66FF"))+
+  scale_x_discrete(labels= my.labels)+
+  theme_classic()
+  
+  
 
 print(Experience_graph)
 
 ```
 
 
+---
 
 ## How would you like to be involved in our community? 
 
@@ -65,38 +81,85 @@ print(Involvement_graph)
 
 ```
 
-##What do you expect from joining R-Ladies meetups? (select all which apply)
-```{r Expectations}
-Expectations_graph_data <- survey_data %>%
-  count(`What do you expect from joining R-Ladies meetups? (select all which apply)`)
+---
 
-Expectations_graph <- Expectations_graph_data %>%
-   ggplot(
-    aes(x =`What do you expect from joining R-Ladies meetups? (select all which apply)`,
-        y = n,
-        fill = `What do you expect from joining R-Ladies meetups? (select all which apply)`))+    geom_bar (stat = "identity") +
+## What do you expect from joining R-Ladies meetups? (select all which apply)
+
+```{r Expectations}
+# Expectations_graph_data <- survey_data %>%
+#   count(`What do you expect from joining R-Ladies meetups? (select all which apply)`)
+# 
+# Expectations_graph <- Expectations_graph_data %>%
+#    ggplot(
+#     aes(x =`What do you expect from joining R-Ladies meetups? (select all which apply)`,
+#         y = n,
+#         fill = `What do you expect from joining R-Ladies meetups? (select all which apply)`))+    geom_bar (stat = "identity") +
+#    scale_y_continuous(expand = c(0, 0), limits = c(0, 50))+
+#   theme_classic()+
+#    scale_fill_manual(values=c("#88398a","#9966FF","#660066","#CC66FF", "#562457"))
+#   
+# print(Expectations_graph)  
+
+
+
+Expectations_data<- survey_data %>% 
+  select(`What do you expect from joining R-Ladies meetups? (select all which apply)`) %>% 
+  separate(., `What do you expect from joining R-Ladies meetups? (select all which apply)`, c("one", "two"),sep= ",") %>% 
+  separate(., two, c("two", "three"), sep = ",") %>% 
+  separate(., three, c("three", "four"), sep = ",") %>% 
+  gather() %>% 
+  filter(!is.na(value)) %>% 
+  select(value) %>% 
+  rename(Response = "value") %>% 
+  count(Response)
+# why is Hear what other.. counted twice seperately??? my stupidity probably
+
+# not sure how this will deal with any 'other responses yet'
+
+my.labels <- c("Hear what other \npeople are using R for",
+               "Networking with fellow \nwomen and other \nmarginalised genders \nin data science", 
+               "Hear what other \npeople are using R for",
+                "To learn new R \nskills through \ninteractive workshops \n(e.g. tutorials)")
+
+
+Expectations_graph <- ggplot(data = Expectations_data, 
+                             aes(x = Response, y = n, fill = Response))+
+  geom_bar(stat="identity")+
    scale_y_continuous(expand = c(0, 0), limits = c(0, 50))+
+  scale_x_discrete(labels= my.labels)+
   theme_classic()+
-   scale_fill_manual(values=c("#88398a","#9966FF","#660066","#CC66FF"))
-  
+   scale_fill_manual(values=c("#88398a","#9966FF","#660066","#CC66FF", "#562457"))+
+  theme(legend.position = "none")
+
 print(Expectations_graph)  
+
+
+
+
 
 ```
 
-##Which topics are you most interested to learn with R?
+---
+## Which topics are you most interested to learn with R?
 
 ```{r Topics}
-Topics_graph_data <- survey_data %>%
-  count(`If you answered yes to learning R, which topics are you most interested to learn with R?`)
+# splitting the strings was a new skill for me
+test <- survey_data$`If you answered yes to learning R, which topics are you most interested to learn with R?`
 
-Topics_graph <- Topics_graph_data %>%
-   ggplot(
-    aes(x =`What is your experience with R?`,
-        y = n,
-        fill = `What is your experience with R?`))+   
-  geom_bar (stat = "identity") +
-   scale_y_continuous(expand = c(0, 0), limits = c(0, 50))+
-  theme_classic()+
-   scale_fill_manual(values=c("#88398a","#9966FF","#660066","#CC66FF"))
+test <- str_split(test, ",")
+test <- unlist(test)
+test <- str_trim(test)
+
+test <- as.data.frame(test) %>% rename(Response = "test")
+
+levels(test$Response) <- gsub(" ", "\n", levels(test$Response))
+
+ggplot(data = test)+
+  geom_bar(aes(x = Response, fill = Response))+
+   theme_classic()+
+  theme(axis.text.x = element_text(angle = 45))+
+   scale_fill_manual(values=c("#88398a","#9966FF","#660066","#CC66FF", "#562457",
+                              "#D3D3D3","#7c5c7c",  "#472c47", "#a306a3", "#edc4ed", "#281828"))+
+  theme(legend.position = "none")
 
 ```
