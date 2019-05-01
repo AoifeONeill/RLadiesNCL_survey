@@ -1,23 +1,31 @@
 ---
-title: "R-Ladies Newcastle Survey"
-output: html_document
+title: "R-Ladies Newcastle"
+output:
+  xaringan::moon_reader:
+    css: ["default", "rladies", "rladies-fonts"]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+
 ---
 
 We want to hear what the community would like to see from R-Ladies Newcastle! We sent a survey both to those who could and couldn't attend our first meetup.We wanted to hear our communities opinions so that we can make sure we create an inclusive space with events they want to attend.
 
 Below we have created some visualisations from the data we received.
 
-```{r setup}
-knitr::opts_chunk$set(echo = TRUE)
-
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 library(tidyverse)
 library(here)
-
 survey_data <- readxl::read_xlsx(here("R-Ladies Newcastle Survey (Responses).xlsx"))
 
 ```
 
+---
 ## What is the range of experience for our community?
+
 
 ```{r Experience}
 
@@ -47,6 +55,7 @@ print(Experience_graph)
 ```
 
 
+---
 
 ## How would you like to be involved in our community? 
 
@@ -72,7 +81,10 @@ print(Involvement_graph)
 
 ```
 
-##What do you expect from joining R-Ladies meetups? (select all which apply)
+---
+
+## What do you expect from joining R-Ladies meetups? (select all which apply)
+
 ```{r Expectations}
 # Expectations_graph_data <- survey_data %>%
 #   count(`What do you expect from joining R-Ladies meetups? (select all which apply)`)
@@ -127,42 +139,27 @@ print(Expectations_graph)
 
 ```
 
-##Which topics are you most interested to learn with R?
+---
+## Which topics are you most interested to learn with R?
 
 ```{r Topics}
-Topics_graph_data <- survey_data %>%
-  count(`If you answered yes to learning R, which topics are you most interested to learn with R?`)
+# splitting the strings was a new skill for me
+test <- survey_data$`If you answered yes to learning R, which topics are you most interested to learn with R?`
 
+test <- str_split(test, ",")
+test <- unlist(test)
+test <- str_trim(test)
 
-poo <- survey_data %>% 
-  select(`If you answered yes to learning R, which topics are you most interested to learn with R?`) %>% 
-  separate(., `If you answered yes to learning R, which topics are you most interested to learn with R?`, c("one", "two"),sep= ",") %>% 
-  separate(., two, c("two", "three"), sep = ",") %>% 
-  separate(., three, c("three", "four"), sep = ",") %>% 
-  separate(., four, c("four", "five"), sep = ",") %>% 
-  separate(., five, c("five", "six"), sep = ",") %>% 
-  separate(., six, c("six", "seven"), sep = ",") %>% 
-  separate(., seven, c("seven", "eight"), sep = ",") %>% 
-  separate(., eight, c("eight", "nine"), sep = ",") %>% 
-  gather() %>% 
-  filter(!is.na(value)) %>% 
-  select(value) %>% 
-  rename(Response = "value") %>%
-    count(Response)
+test <- as.data.frame(test) %>% rename(Response = "test")
 
-my.labels <- c("Data \nmanipulation","Data \nvisualisation", "Maping", "Spatial \nanalytics",
-               "Statistical \nanalysis \nmethods", "Data \nmanipulation", "Introduction \nto R",
-               "Shiny", "Spatial \nanalytics", "Statistical \nanalysis \nmethods")
+levels(test$Response) <- gsub(" ", "\n", levels(test$Response))
 
-
-Topics_graph <- poo %>%
-   ggplot(aes(x =Response,y = n,
-        fill = Response))+   
-  geom_bar (stat = "identity") +
-   scale_x_discrete(labels=my.labels)  +
-  theme_classic()+
+ggplot(data = test)+
+  geom_bar(aes(x = Response, fill = Response))+
+   theme_classic()+
+  theme(axis.text.x = element_text(angle = 45))+
    scale_fill_manual(values=c("#88398a","#9966FF","#660066","#CC66FF", "#562457",
-                              "#D3D3D3","#7c5c7c",  "#472c47", "#a306a3", "#edc4ed"))+
+                              "#D3D3D3","#7c5c7c",  "#472c47", "#a306a3", "#edc4ed", "#281828"))+
   theme(legend.position = "none")
-Topics_graph
+
 ```
