@@ -17,9 +17,11 @@ Below we have created some visualisations from the data we received.
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(xaringan)
 library(tidyverse)
-library(here)
-survey_data <- readxl::read_xlsx(here("R-Ladies Newcastle Survey (Responses).xlsx"))
+library(readxl)
+getwd()
+survey_data <- readxl::read_xlsx("/home/AoifeONeill/Meetup/data/R-Ladies Newcastle Survey (Responses).xlsx")
 
 ```
 
@@ -46,7 +48,8 @@ Experience_graph <- Experience_graph_data %>%
    scale_y_continuous(expand = c(0, 0), limits = c(0, 50))+
    scale_fill_manual(values=c("#88398a","#9966FF","#660066","#CC66FF"))+
   scale_x_discrete(labels= my.labels)+
-  theme_classic()
+  theme_classic()+
+  theme(legend.position = "none")
   
   
 
@@ -71,6 +74,7 @@ Involvement_graph <- Involvement_graph_data %>%
   geom_bar (stat = "identity") +
    coord_polar("y", start=0)+
   theme(panel.background = element_blank(),
+        legend.title = element_blank(),
         axis.title = element_blank(),
         axis.text = element_blank(),
         axis.ticks = element_blank(),
@@ -154,12 +158,17 @@ test <- as.data.frame(test) %>% rename(Response = "test")
 
 levels(test$Response) <- gsub(" ", "\n", levels(test$Response))
 
-ggplot(data = test)+
-  geom_bar(aes(x = Response, fill = Response))+
+topics_graph <- ggplot(data = test)+
+  geom_bar(width=0.8,
+    position = position_dodge(),
+    aes(x = Response, fill = Response))+
    theme_classic()+
-  theme(axis.text.x = element_text(angle = 45))+
+    scale_y_continuous(expand = c(0, 0), limits = c(0, 20))+
+  theme(axis.text.x = element_text(angle = 0))+
    scale_fill_manual(values=c("#88398a","#9966FF","#660066","#CC66FF", "#562457",
                               "#D3D3D3","#7c5c7c",  "#472c47", "#a306a3", "#edc4ed", "#281828"))+
   theme(legend.position = "none")
 
+print(topics_graph)
 ```
+
