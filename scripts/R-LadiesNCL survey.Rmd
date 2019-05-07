@@ -19,7 +19,9 @@ Below we have created some visualisations from the data we received.
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 library(tidyverse)
 library(here)
-survey_data <- readxl::read_xlsx(here("R-Ladies Newcastle Survey (Responses).xlsx"))
+library(tidytext)
+library(wordcloud)
+survey_data <- readxl::read_xlsx(here("/data/R-Ladies Newcastle Survey (Responses).xlsx"))
 
 ```
 
@@ -157,9 +159,69 @@ levels(test$Response) <- gsub(" ", "\n", levels(test$Response))
 ggplot(data = test)+
   geom_bar(aes(x = Response, fill = Response))+
    theme_classic()+
-  theme(axis.text.x = element_text(angle = 45))+
+  theme(axis.text.x = element_text(angle = 45, hjust=1))+
    scale_fill_manual(values=c("#88398a","#9966FF","#660066","#CC66FF", "#562457",
                               "#D3D3D3","#7c5c7c",  "#472c47", "#a306a3", "#edc4ed", "#281828"))+
   theme(legend.position = "none")
+
+```
+
+---
+## Which topics are you most interested to learn with R? (Wordcloud)
+
+```{r Topics text 1}
+#survey_data %>% 
+#  select(11,6) %>%
+#  unnest_tokens(word,`If you would be interested in running a session or presenting some work, please leave a brief description below.`) %>%
+#  group_by(word) %>% 
+#  summarise(n=n()) %>%
+#  filter(word != "NA",
+#         word != "happy",
+#         word != "feel",
+#         word != "havent",
+#         word != "totally",
+#         word != "absolute",
+#         word != "world",
+#         word != "dealing") %>%
+#  anti_join(stop_words, by = c("word" = "word")) %>% 
+#  ggplot(aes(x=reorder(word,-n),y=n)) +
+#  geom_bar(aes(fill=n), stat="identity") +
+#  theme(axis.text.x = element_text(angle = 45, hjust=1))
+
+set.seed(4)
+survey_data %>% 
+  select(9,6) %>%
+  unnest_tokens(word,`If you answered yes to learning R, which topics are you most interested to learn with R?`) %>%
+  group_by(word) %>% 
+  summarise(n=n()) %>%
+  filter(word != "software's") %>% 
+  anti_join(stop_words, by = c("word" = "word")) -> cloud
+
+wordcloud(words=cloud$word, freq=cloud$n, min.freq = 0, colors = c("#D3D3D3","#7c5c7c","#472c47","#a306a3","#9966FF","#660066"),rot.per = .4)
+```
+
+---
+## Which topics would you be interested in teaching?
+
+```{r Topics text bar chart}
+set.seed(1)
+survey_data %>% 
+  select(11,6) %>%
+  unnest_tokens(word,`If you would be interested in running a session or presenting some work, please leave a brief description below.`) %>%
+  group_by(word) %>% 
+  summarise(n=n()) %>%
+  filter(word != "NA",
+         word != "happy",
+         word != "feel",
+         word != "havent",
+         word != "totally",
+         word != "absolute",
+         word != "world",
+         word != "dealing") %>%
+  anti_join(stop_words, by = c("word" = "word")) -> cloud
+wordcloud(words=cloud$word, freq=cloud$n, min.freq = 0, 
+          #colors = c("grey","purple3","purple1"),
+          colors = c("#D3D3D3","#660066","#a306a3"),
+          rot.per = .3, use.r.layout = TRUE)
 
 ```
